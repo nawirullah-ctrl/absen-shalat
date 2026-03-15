@@ -57,6 +57,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/rekap-absensi-shalat', [AbsensiShalatController::class, 'rekap'])->name('absensi-shalat.rekap');
         Route::get('/export-absensi-shalat', [AbsensiShalatController::class, 'export'])->name('absensi-shalat.export');
 
+        Route::get('/peringkat-shalat', [AbsensiShalatController::class, 'peringkat'])
+         ->name('absensi-shalat.peringkat');
+
         Route::get('/absensi-kegiatan-tambahan', [AbsensiKegiatanTambahanController::class, 'index'])
             ->name('absensi-kegiatan-tambahan.index');
         Route::post('/absensi-kegiatan-tambahan', [AbsensiKegiatanTambahanController::class, 'store'])

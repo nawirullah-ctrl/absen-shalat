@@ -156,6 +156,15 @@
             </p>
 
             <div class="space-y-1.5">
+
+                <a href="{{ route('absensi-shalat.peringkat') }}"
+                    class="group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all {{ request()->routeIs('absensi-shalat.peringkat') ? 'bg-white/15 text-white shadow-sm ring-1 ring-white/10' : 'text-green-50 hover:bg-white/10 hover:text-white' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 {{ request()->routeIs('absensi-shalat.peringkat') ? 'text-white' : 'text-green-200 group-hover:text-white' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 17v-6h4v6m-7 4h14a2 2 0 002-2V7a2 2 0 00-2-2h-3.5l-1-2h-3l-1 2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span class="font-medium">Top 5 Shalat</span>
+                    </a>
+                    
                 <a href="{{ route('absensi-shalat.rekap') }}"
                    class="group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all {{ request()->routeIs('absensi-shalat.rekap') ? 'bg-white/15 text-white shadow-sm ring-1 ring-white/10' : 'text-green-50 hover:bg-white/10 hover:text-white' }}">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 {{ request()->routeIs('absensi-shalat.rekap') ? 'text-white' : 'text-green-200 group-hover:text-white' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">

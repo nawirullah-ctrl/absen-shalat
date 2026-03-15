@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\ProfilPesantren;
+use Illuminate\Support\Facades\DB;
 
 class AbsensiShalatController extends Controller
 {
@@ -173,4 +174,62 @@ class AbsensiShalatController extends Controller
 
         return $pdf->stream('rekap-absensi-shalat-' . $tanggalMulai . '-sampai-' . $tanggalSelesai . '.pdf');
     }
+
+    public function peringkat(Request $request)
+{
+    $tanggalMulai = $request->tanggal_mulai ?? now()->timezone(config('app.timezone'))->startOfMonth()->toDateString();
+    $tanggalSelesai = $request->tanggal_selesai ?? now()->timezone(config('app.timezone'))->toDateString();
+    $kelasId = $request->kelas_id;
+
+    $kelas = Kelas::orderBy('nama')->get();
+
+    $peringkatSantri = Santri::query()
+        ->with('kelas')
+        ->where('santris.status', 'aktif')
+        ->leftJoin('absensi_shalats', function ($join) use ($tanggalMulai, $tanggalSelesai) {
+            $join->on('santris.id', '=', 'absensi_shalats.santri_id')
+                ->whereBetween('absensi_shalats.tanggal', [$tanggalMulai, $tanggalSelesai]);
+        })
+        ->when($kelasId, function ($q) use ($kelasId) {
+            $q->where('santris.kelas_id', $kelasId);
+        })
+        ->select(
+            'santris.id',
+            'santris.nis',
+            'santris.nama',
+            'santris.kelas_id',
+            DB::raw("SUM(CASE WHEN absensi_shalats.status = 'hadir' THEN 1 ELSE 0 END) as jumlah_hadir"),
+            DB::raw("SUM(CASE WHEN absensi_shalats.status = 'masbuk' THEN 1 ELSE 0 END) as jumlah_masbuk"),
+            DB::raw("SUM(CASE WHEN absensi_shalats.status = 'izin' THEN 1 ELSE 0 END) as jumlah_izin"),
+            DB::raw("SUM(CASE WHEN absensi_shalats.status = 'sakit' THEN 1 ELSE 0 END) as jumlah_sakit"),
+            DB::raw("SUM(CASE WHEN absensi_shalats.status = 'alpha' THEN 1 ELSE 0 END) as jumlah_alpha"),
+            DB::raw("COUNT(absensi_shalats.id) as total_absensi"),
+            DB::raw("
+                SUM(
+                    CASE
+                        WHEN absensi_shalats.status IN ('alpha', 'izin', 'sakit', 'masbuk') THEN 1
+                        ELSE 0
+                    END
+                ) as total_pelanggaran_ringan
+            ")
+        )
+        ->groupBy('santris.id', 'santris.nis', 'santris.nama', 'santris.kelas_id')
+        ->havingRaw('COUNT(absensi_shalats.id) > 0')
+        ->orderBy('total_pelanggaran_ringan', 'asc')
+        ->orderBy('jumlah_alpha', 'asc')
+        ->orderBy('jumlah_masbuk', 'asc')
+        ->orderBy('jumlah_izin', 'asc')
+        ->orderBy('jumlah_sakit', 'asc')
+        ->orderBy('santris.nama', 'asc')
+        ->take(5)
+        ->get();
+
+    return view('absensi-shalat.peringkat', compact(
+        'peringkatSantri',
+        'tanggalMulai',
+        'tanggalSelesai',
+        'kelas',
+        'kelasId'
+    ));
+}
 }
